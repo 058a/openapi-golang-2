@@ -9,7 +9,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 
-	stockitemspec "openapi/internal/infrastructure/oapicodegen/stock"
 	hello "openapi/internal/presentation/hello"
 	stockitem "openapi/internal/presentation/stock/items"
 )
@@ -35,7 +34,7 @@ func main() {
 	e.Validator = &CustomValidator{validator: validator.New()}
 
 	e.GET("/", hello.Get)
-	stockitemspec.RegisterHandlers(e, stockitem.New())
+	stockitem.RegisterHandlers(e, stockitem.New())
 
 	e.Logger.Fatal(e.Start(":1323"))
 }
