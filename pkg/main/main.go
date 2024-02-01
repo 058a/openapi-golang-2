@@ -10,7 +10,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 
 	hello "openapi/internal/presentation/hello"
-	stockitem "openapi/internal/presentation/stock/items"
+	stock "openapi/internal/presentation/stock"
 )
 
 type CustomValidator struct {
@@ -34,7 +34,7 @@ func main() {
 	e.Validator = &CustomValidator{validator: validator.New()}
 
 	e.GET("/", hello.Get)
-	stockitem.RegisterHandlers(e, stockitem.New())
+	stock.RegisterHandlers(e, stock.New())
 
 	e.Logger.Fatal(e.Start(":1323"))
 }
