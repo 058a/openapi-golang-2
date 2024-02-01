@@ -1,11 +1,8 @@
 package items_test
 
 import (
-	"openapi/internal/infrastructure/env"
 	oapicodegen "openapi/internal/infrastructure/oapicodegen/stock"
 	"testing"
-
-	"bytes"
 
 	_ "github.com/lib/pq"
 
@@ -19,50 +16,37 @@ import (
 func TestDeleteOk(t *testing.T) {
 
 	// Setup
-	client := http.Client{}
+	client := &http.Client{}
 	name := uuid.NewString()
 
 	// Given
-	postReqBody := &oapicodegen.PostStockItemJSONRequestBody{
-		Name: name,
-	}
-	postReqBodyJson, _ := json.Marshal(postReqBody)
-	postReq, err := http.NewRequest(
-		http.MethodPost,
-		env.GetServiceUrl()+"/stock/items",
-		bytes.NewBuffer(postReqBodyJson))
-	if err != nil {
-		t.Fatal(err)
-	}
-	postReq.Header.Set("Content-Type", "application/json")
-	postRes, err := client.Do(postReq)
+	postRes, err := PostHelper(
+		client,
+		&oapicodegen.PostStockItemJSONRequestBody{
+			Name: name,
+		},
+	)
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer postRes.Body.Close()
 
 	if postRes.StatusCode != http.StatusCreated {
-		t.Fatal(err)
+		t.Fatalf("expected not empty, actual empty")
 	}
 
 	postResBodyByte, _ := io.ReadAll(postRes.Body)
 	postResBody := &oapicodegen.Created{}
 	json.Unmarshal(postResBodyByte, &postResBody)
 	if postResBody.Id == uuid.Nil {
-		t.Errorf("expected not empty, actual empty")
+		t.Fatal(err)
 	}
 
 	// When
-	deleteReq, err := http.NewRequest(
-		http.MethodDelete,
-		env.GetServiceUrl()+"/stock/items/"+postResBody.Id.String(),
-		nil,
+	deleteRes, err := DeleteHelper(
+		client,
+		postResBody.Id,
 	)
-	if err != nil {
-		t.Fatal(err)
-	}
-	deleteReq.Header.Set("Content-Type", "application/json")
-	deleteRes, err := client.Do(deleteReq)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -80,18 +64,12 @@ func TestDeleteOk(t *testing.T) {
 
 func TestDeleteNotFound(t *testing.T) {
 	// Setup
-	client := http.Client{}
+	client := &http.Client{}
 
-	deleteReq, err := http.NewRequest(
-		http.MethodDelete,
-		env.GetServiceUrl()+"/stock/items/"+uuid.NewString(),
-		nil,
+	deleteRes, err := DeleteHelper(
+		client,
+		uuid.New(),
 	)
-	if err != nil {
-		t.Fatal(err)
-	}
-	deleteReq.Header.Set("Content-Type", "application/json")
-	deleteRes, err := client.Do(deleteReq)
 	if err != nil {
 		t.Fatal(err)
 	}
